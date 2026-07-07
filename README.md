@@ -235,8 +235,8 @@ const footer = new FooterBuilder()
 Text options: `{ bold, color, fontSize, maxWidth }`.
 
 - `maxWidth: 200` → wrap at 200 points.
-- `maxWidth: 'page'` → wrap using full page width minus margins (use only when the column has a single text item).
-- `maxWidth: 'remaining'` → fill the remaining space in the column after images/other items are placed.
+- `maxWidth: 'page'` → wrap using full page width minus margins and minus any other items in the same column (e.g. an image placed before the text).
+- `maxWidth: 'remaining'` → fill the remaining space in the column after images/other items are placed, capped at the default column width.
 - omit `maxWidth` → default column width (~1/3 of the page).
 
 `image` accepts a file path, `Uint8Array`, `Buffer`, or `ArrayBuffer`.

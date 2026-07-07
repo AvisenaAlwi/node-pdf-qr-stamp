@@ -323,21 +323,22 @@ async function case12(pdf: Uint8Array) {
 }
 
 // ============================================================
-// CASE 13: Footer aware of bottom-left fallback QR
+// CASE 13: Footer aware of bottom-left no fallback QR
 // ============================================================
 async function case13(pdf: Uint8Array) {
   const footer = new FooterBuilder()
     .fontSize(8)
     .margin(4)
-    .centerText(
-      'This long centered footer text automatically wraps before reaching the bottom-left fallback QR code area, so the QR code remains fully visible.',
+    .leftImage(LOGO, { height: 16 })
+    .leftText(
+      'This long centered footer text automatically wraps before reaching the bottom-left fallback QR code area, so the QR code remains fully visible. This long centered footer text automatically wraps before reaching the bottom-left fallback QR code area, so the QR code remains fully visible',
       { maxWidth: 'page' },
     );
 
   const out = await stampPdf({
     pdf,
     qr: { text: 'https://verify.example.com/doc/BL-FALLBACK', size: 80 },
-    anchorText: 'text that does not exist',
+    anchorText: 'ditandatangani',
     fallback: 'bottom-left',
     footerBuilder: footer,
   });

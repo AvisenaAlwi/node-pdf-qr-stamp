@@ -34,8 +34,10 @@ export interface FooterTextOptions {
   /**
    * Max line width for auto-wrap.
    * - number: explicit width in points.
-   * - `'page'`: full page width minus margins.
-   * - `'remaining'`: remaining width in the column after other items are placed.
+   * - `'page'`: full page width minus margins and any other items in the same
+   *   column (e.g. an image placed before the text).
+   * - `'remaining'`: remaining width in the column after other items are placed,
+   *   capped at the default column width (~1/3 of the page).
    * Default = column width (~1/3 of the page).
    */
   maxWidth?: number | 'page' | 'remaining';
@@ -89,8 +91,8 @@ interface MeasuredText {
   fontSize: number;
   color: [number, number, number];
   bold: boolean;
-  /** True when this item uses maxWidth: 'remaining' and is resolved in a second pass. */
-  remaining?: boolean;
+  /** Set when this item uses a flexible maxWidth and is resolved in a second pass. */
+  flex?: 'remaining' | 'page';
 }
 
 interface MeasuredImage {
@@ -251,7 +253,7 @@ export class FooterBuilder {
     for (const { column, item } of this._items) {
       if (item.kind === 'text') {
         const requested = item.options?.maxWidth;
-        if (requested === 'remaining') {
+        if (requested === 'remaining' || requested === 'page') {
           cols[column].push({
             kind: 'text',
             lines: [],
@@ -260,10 +262,10 @@ export class FooterBuilder {
             fontSize: item.options?.fontSize ?? this._fontSize,
             color: item.options?.color ?? this._color,
             bold: !!item.options?.bold,
-            remaining: true,
+            flex: requested,
           });
         } else {
-          const maxW = requested === 'page' ? available : (requested ?? defaultColWidth);
+          const maxW = requested ?? defaultColWidth;
           cols[column].push(
             this._measureTextItem(item, pageNo, total, regular, bold, maxW),
           );
@@ -276,24 +278,27 @@ export class FooterBuilder {
       }
     }
 
-    // Second pass: resolve 'remaining' widths per column.
+    // Second pass: resolve flexible ('remaining' / 'page') widths per column.
     for (const col of ['left', 'center', 'right'] as Column[]) {
       const items = cols[col];
-      const remainingItems = items.filter(
-        (it): it is MeasuredText => it.kind === 'text' && !!it.remaining,
+      const flexItems = items.filter(
+        (it): it is MeasuredText => it.kind === 'text' && !!it.flex,
       );
-      if (remainingItems.length === 0) continue;
+      if (flexItems.length === 0) continue;
 
+      const hasPage = flexItems.some((it) => it.flex === 'page');
       const fixedWidth = items
-        .filter((it) => (it.kind === 'text' ? !it.remaining : true))
+        .filter((it) => (it.kind === 'text' ? !it.flex : true))
         .reduce((s, it) => s + it.blockWidth, 0);
       const gapsWidth = Math.max(0, items.length - 1) * gap;
-      const remainingWidth = Math.max(10, defaultColWidth - fixedWidth - gapsWidth);
-      const eachWidth = remainingWidth / remainingItems.length;
+      // 'page' fills the whole page width (minus other items); 'remaining' uses
+      // the default column width so other columns are not displaced.
+      const flexBase = hasPage ? available : defaultColWidth;
+      const flexWidth = Math.max(10, flexBase - fixedWidth - gapsWidth) / flexItems.length;
 
       for (let i = 0; i < items.length; i++) {
         const it = items[i];
-        if (it.kind === 'text' && it.remaining) {
+        if (it.kind === 'text' && it.flex) {
           const original = this._items.find(
             (entry) => entry.column === col && entry.item.kind === 'text',
           )?.item as FooterTextItem | undefined;
@@ -304,7 +309,7 @@ export class FooterBuilder {
             total,
             regular,
             bold,
-            eachWidth,
+            flexWidth,
           );
           items[i] = measured;
         }

@@ -116,6 +116,23 @@ describe('FooterBuilder', () => {
     await assertValidPdf(out);
   });
 
+  it('does not overflow when maxWidth: page shares a column with an image', async () => {
+    const pdf = await createPdf({
+      anchors: [{ text: 'anchor', x: 100, y: 700 }],
+    });
+    const footer = new FooterBuilder()
+      .fontSize(8)
+      .margin(4)
+      .leftImage(PNG_BYTES, { height: 16 })
+      .leftText(
+        'This long footer text should wrap within the remaining page width after the logo without overflowing the right page margin.',
+        { maxWidth: 'page' },
+      );
+
+    const out = await stampPdf({ pdf, qr: { text: 'x' }, footerBuilder: footer });
+    await assertValidPdf(out);
+  });
+
   it('uses maxWidth: remaining when an image shares the column', async () => {
     const pdf = await createPdf({
       anchors: [{ text: 'anchor', x: 100, y: 700 }],
