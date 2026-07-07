@@ -58,7 +58,7 @@ export async function stampPdf(options: StampOptions): Promise<Uint8Array> {
   const anchor = (options.anchorText ?? DEFAULT_ANCHOR).trim();
   const qrOpts: QROptions = options.qr;
   const qrSize = qrOpts.size ?? 90;
-  const offsetAbove = qrOpts.offsetAbove ?? 6;
+  const offsetAbove = qrOpts.offsetAbove ?? 0;
 
   const boxes = await findTextBoxes(bytes, anchor);
   const hasMatches = boxes.length > 0;
