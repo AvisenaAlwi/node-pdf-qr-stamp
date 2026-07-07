@@ -1,0 +1,58 @@
+{
+  "name": "@avisenaalwi/pdf-qr-stamp",
+  "version": "1.0.0",
+  "description": "Library to stamp PDFs with a QR code automatically positioned above a target anchor text, with an optional center image and a footer.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx test/smoke.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:smoke": "tsx test/smoke.ts",
+    "start": "tsx test/smoke.ts"
+  },
+  "keywords": [
+    "pdf",
+    "qr",
+    "qrcode",
+    "stamp",
+    "sign",
+    "footer",
+    "electronic-signature"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.4.168",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/qrcode": "^1.5.5",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "vitest": "^4.1.10"
+  },
+  "author": "Avisena Alwi <avisena.abdillah98@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avisenaalwi/node-pdf-qr-stamp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/avisenaalwi/node-pdf-qr-stamp/issues"
+  },
+  "homepage": "https://github.com/avisenaalwi/node-pdf-qr-stamp#readme"
+}

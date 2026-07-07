@@ -1,0 +1,43 @@
+# Source maps source (kept because declaration maps reference src)
+# src/   # intentionally kept for go-to-definition
+
+# Tests
+test/
+*.test.ts
+vitest.config.ts
+
+# README images (loaded from GitHub raw URLs)
+assets/
+
+# Examples generated output
+examples/out/
+
+# Build config
+tsconfig.json
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache
+.cache/
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/

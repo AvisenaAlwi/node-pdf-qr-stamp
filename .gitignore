@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Example generated PDFs
+examples/out/*
+!examples/out/sample.pdf
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache
+.cache/
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/
