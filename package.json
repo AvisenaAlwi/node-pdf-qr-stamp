@@ -56,10 +56,10 @@
   "author": "Avisena Alwi <avisena.abdillah98@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/avisenaalwi/node-pdf-qr-stamp.git"
+    "url": "https://github.com/AvisenaAlwi/node-pdf-qr-stamp"
   },
   "bugs": {
-    "url": "https://github.com/avisenaalwi/node-pdf-qr-stamp/issues"
+    "url": "https://github.com/AvisenaAlwi/node-pdf-qr-stamp/issues"
   },
-  "homepage": "https://github.com/avisenaalwi/node-pdf-qr-stamp#readme"
+  "homepage": "https://github.com/AvisenaAlwi/node-pdf-qr-stamp#readme"
 }
