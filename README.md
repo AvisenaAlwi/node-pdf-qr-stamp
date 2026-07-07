@@ -45,7 +45,7 @@ const result = await stampPdf({
   qr: {
     text: 'https://verify.example.com/abc123',
     size: 90,          // QR size in points (default 90)
-    offsetAbove: 6,    // gap between QR and text top (default 6)
+    offsetAbove: 6,    // gap between QR and text top (default 0)
   },
   anchorText: 'ditandatangani secara elektronik',
 });
@@ -183,7 +183,7 @@ await stampPdf({ pdf: ab, qr: { text: 'x' } });
 | `qr.text` | `string` | required | QR payload |
 | `qr.image` | `string \| Uint8Array \| Buffer \| ArrayBuffer` | — | Center logo (PNG/JPG) |
 | `qr.size` | `number` | `90` | QR size in points |
-| `qr.offsetAbove` | `number` | `6` | Gap above anchor text in points |
+| `qr.offsetAbove` | `number` | `0` | Gap above anchor text in points |
 | `qr.errorCorrectionLevel` | `'L' \| 'M' \| 'Q' \| 'H'` | `'H'` | QR error correction |
 | `qr.imageRatio` | `number` | `0.22` | Logo size relative to QR |
 | `qr.imagePadding` | `number` | `3` | White padding around logo |
