@@ -3,8 +3,8 @@ import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { PDFDocument } from 'pdf-lib';
-import { stampPdf } from '../src/index.js';
-import { createPdf, assertValidPdf, PNG_BYTES, JPG_BYTES, UNKNOWN_IMAGE_BYTES } from './helpers.js';
+import { stampPdf, FooterBuilder } from '../src/index.js';
+import { createPdf, assertValidPdf, extractTextContent, PNG_BYTES, JPG_BYTES, UNKNOWN_IMAGE_BYTES } from './helpers.js';
 
 describe('stampPdf', () => {
   it('stamps a QR above the anchor text', async () => {
@@ -100,6 +100,65 @@ describe('stampPdf', () => {
       anchorText: 'missing text',
       fallback: 'bottom-right',
       preview: true,
+    });
+    await assertValidPdf(out);
+  });
+
+  it('keeps simple footer text clear of a bottom-right fallback QR', async () => {
+    const pdf = await createPdf({
+      anchors: [{ text: 'no anchor here', x: 100, y: 700 }],
+    });
+    const out = await stampPdf({
+      pdf,
+      qr: { text: 'x', size: 80 },
+      anchorText: 'missing text',
+      fallback: 'bottom-right',
+      footer: {
+        right: 'Right footer text that should stay clear of the QR code area',
+        pageNumber: true,
+      },
+    });
+    await assertValidPdf(out);
+    const pages = await extractTextContent(out);
+    expect(pages[0].text).toContain('Right footer text');
+    expect(pages[0].text).toContain('Halaman 1 / 1');
+  });
+
+  it('keeps simple footer text clear of a bottom-left fallback QR', async () => {
+    const pdf = await createPdf({
+      anchors: [{ text: 'no anchor here', x: 100, y: 700 }],
+    });
+    const out = await stampPdf({
+      pdf,
+      qr: { text: 'x', size: 80 },
+      anchorText: 'missing text',
+      fallback: 'bottom-left',
+      footer: {
+        left: 'Left footer text that should stay clear of the QR code area',
+      },
+    });
+    await assertValidPdf(out);
+    const pages = await extractTextContent(out);
+    expect(pages[0].text).toContain('Left footer text');
+  });
+
+  it('keeps full-width footer builder text clear of a bottom-right fallback QR', async () => {
+    const pdf = await createPdf({
+      anchors: [{ text: 'no anchor here', x: 100, y: 700 }],
+    });
+    const footer = new FooterBuilder()
+      .fontSize(8)
+      .margin(4)
+      .centerText(
+        'This is a long centered footer text that should wrap before reaching the bottom-right fallback QR code area.',
+        { maxWidth: 'page' },
+      );
+    const out = await stampPdf({
+      pdf,
+      qr: { text: 'x', size: 80 },
+      anchorText: 'missing text',
+      fallback: 'bottom-right',
+      footerBuilder: footer,
     });
     await assertValidPdf(out);
   });

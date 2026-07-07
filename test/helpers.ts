@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, PDFPage } from 'pdf-lib';
+import { PDFDocument, StandardFonts, PDFPage, PDFName, PDFDict, PDFRef } from 'pdf-lib';
 
 /**
  * Minimal 1x1 black PNG bytes (used as a stand-in logo in tests).
@@ -75,6 +75,35 @@ export async function createPdf(options: CreatePdfOptions = {}): Promise<Uint8Ar
 export async function assertValidPdf(bytes: Uint8Array): Promise<void> {
   const doc = await PDFDocument.load(bytes);
   expect(doc.getPageCount()).toBeGreaterThan(0);
+}
+
+/**
+ * Count the number of link annotations on each page.
+ */
+export async function countLinkAnnotations(
+  bytes: Uint8Array,
+): Promise<number[]> {
+  const doc = await PDFDocument.load(bytes);
+  const counts: number[] = [];
+  for (const page of doc.getPages()) {
+    const annots = page.node.Annots();
+    if (!annots) {
+      counts.push(0);
+      continue;
+    }
+    let count = 0;
+    for (const ref of annots.asArray()) {
+      const obj = ref instanceof PDFRef ? doc.context.lookup(ref) : ref;
+      if (
+        obj instanceof PDFDict &&
+        obj.get(PDFName.of('Subtype'))?.toString() === PDFName.of('Link').toString()
+      ) {
+        count++;
+      }
+    }
+    counts.push(count);
+  }
+  return counts;
 }
 
 /**

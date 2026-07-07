@@ -1,6 +1,6 @@
 {
   "name": "@avisenaalwi/pdf-qr-stamp",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Library to stamp PDFs with a QR code automatically positioned above a target anchor text, with an optional center image and a footer.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

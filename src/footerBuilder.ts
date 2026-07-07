@@ -25,6 +25,7 @@ import {
   StandardFonts,
 } from 'pdf-lib';
 import { wrapText } from './text.js';
+import { drawTextWithLinks } from './links.js';
 
 export interface FooterTextOptions {
   fontSize?: number;
@@ -156,7 +157,11 @@ export class FooterBuilder {
   }
 
   /** Render the footer on every page of the document. */
-  async render(pdfDoc: PDFDocument): Promise<void> {
+  async render(
+    pdfDoc: PDFDocument,
+    reservedLeft?: number[],
+    reservedRight?: number[],
+  ): Promise<void> {
     const pages = pdfDoc.getPages();
     const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -181,6 +186,8 @@ export class FooterBuilder {
         regular,
         bold,
         imageCache,
+        reservedLeft?.[i] ?? 0,
+        reservedRight?.[i] ?? 0,
       );
     }
   }
@@ -225,10 +232,17 @@ export class FooterBuilder {
     regular: PDFFont,
     bold: PDFFont,
     imageCache: Map<string | Uint8Array | Buffer | ArrayBuffer, PDFImage>,
+    reservedLeft: number,
+    reservedRight: number,
   ): Promise<void> {
     const { width } = page.getSize();
     const gap = 4;
-    const available = width - 2 * this._margin;
+    // Leave the fallback QR area free on the side(s) it occupies.
+    const effectiveWidth = Math.max(
+      width - reservedLeft - reservedRight,
+      2 * this._margin,
+    );
+    const available = effectiveWidth - 2 * this._margin;
     const defaultColWidth = available / 3;
 
     // First pass: measure images and text with explicit widths.
@@ -305,9 +319,15 @@ export class FooterBuilder {
     };
 
     const colStarts: Record<Column, number> = {
-      left: this._margin,
-      center: this._margin + colWidths.left + gap,
-      right: this._margin + colWidths.left + gap + colWidths.center + gap,
+      left: this._margin + reservedLeft,
+      center: this._margin + reservedLeft + colWidths.left + gap,
+      right:
+        this._margin +
+        reservedLeft +
+        colWidths.left +
+        gap +
+        colWidths.center +
+        gap,
     };
 
     // Draw items per column (bottom-aligned).
@@ -320,11 +340,9 @@ export class FooterBuilder {
           for (let i = 0; i < it.lines.length; i++) {
             // The bottom line sits at y = margin; lines above rise by lineHeight.
             const y = this._margin + (it.lines.length - 1 - i) * lineHeight;
-            page.drawText(it.lines[i], {
-              x,
-              y,
-              size: it.fontSize,
+            drawTextWithLinks(page, it.lines[i], x, y, {
               font,
+              size: it.fontSize,
               color: rgb(it.color[0], it.color[1], it.color[2]),
             });
           }

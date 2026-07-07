@@ -298,6 +298,74 @@ async function case11(pdf: Uint8Array) {
   console.log('case11: preview placeholder -> examples/out/case11-preview.pdf');
 }
 
+// ============================================================
+// CASE 12: Footer aware of bottom-right fallback QR
+// ============================================================
+async function case12(pdf: Uint8Array) {
+  const footer = new FooterBuilder()
+    .fontSize(8)
+    .margin(4)
+    .leftImage(LOGO, { height: 16 })
+    .leftText(
+      'This long centered footer text automatically wraps before reaching the bottom-right fallback QR code area, so the QR code remains fully visible.',
+      { maxWidth: 'page' },
+    );
+
+  const out = await stampPdf({
+    pdf,
+    qr: { text: 'https://verify.example.com/doc/BR-FALLBACK', size: 80 },
+    anchorText: 'text that does not exist',
+    fallback: 'bottom-right',
+    footerBuilder: footer,
+  });
+  writeFileSync('examples/out/case12-footer-aware-br.pdf', out);
+  console.log('case12: footer aware bottom-right fallback QR -> examples/out/case12-footer-aware-br.pdf');
+}
+
+// ============================================================
+// CASE 13: Footer aware of bottom-left fallback QR
+// ============================================================
+async function case13(pdf: Uint8Array) {
+  const footer = new FooterBuilder()
+    .fontSize(8)
+    .margin(4)
+    .centerText(
+      'This long centered footer text automatically wraps before reaching the bottom-left fallback QR code area, so the QR code remains fully visible.',
+      { maxWidth: 'page' },
+    );
+
+  const out = await stampPdf({
+    pdf,
+    qr: { text: 'https://verify.example.com/doc/BL-FALLBACK', size: 80 },
+    anchorText: 'text that does not exist',
+    fallback: 'bottom-left',
+    footerBuilder: footer,
+  });
+  writeFileSync('examples/out/case13-footer-aware-bl.pdf', out);
+  console.log('case13: footer aware bottom-left fallback QR -> examples/out/case13-footer-aware-bl.pdf');
+}
+
+// ============================================================
+// CASE 14: Footer with clickable URL link
+// ============================================================
+async function case14(pdf: Uint8Array) {
+  const footer = new FooterBuilder()
+    .fontSize(8)
+    .margin(4)
+    .centerText(
+      'For verification, please visit https://verify.example.com/doc/LINK — the URL is clickable.',
+    );
+
+  const out = await stampPdf({
+    pdf,
+    qr: { text: 'https://verify.example.com/doc/LINK', size: 80 },
+    anchorText: 'ditandatangani secara elektronik',
+    footerBuilder: footer,
+  });
+  writeFileSync('examples/out/case14-footer-link.pdf', out);
+  console.log('case14: footer with clickable URL -> examples/out/case14-footer-link.pdf');
+}
+
 async function main() {
   const pdf = await makePdf();
   await case1(pdf);
@@ -313,6 +381,9 @@ async function main() {
   await case10(pdf);
   await case10b(pdf);
   await case11(pdf);
+  await case12(pdf);
+  await case13(pdf);
+  await case14(pdf);
   console.log('\nALL CASES COMPLETE. See folder examples/out/');
 }
 

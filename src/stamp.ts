@@ -86,6 +86,11 @@ export async function stampPdf(options: StampOptions): Promise<Uint8Array> {
   }
 
   const pages = pdfDoc.getPages();
+  const fallbackMargin = 8;
+  // Space to reserve on each side of a page where a fallback QR is stamped.
+  // Used by the footer so long text does not cover the QR code.
+  const reservedLeft: number[] = new Array(pages.length).fill(0);
+  const reservedRight: number[] = new Array(pages.length).fill(0);
 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
@@ -126,10 +131,16 @@ export async function stampPdf(options: StampOptions): Promise<Uint8Array> {
 
     if (!hasMatches) {
       if (options.fallback && options.fallback !== 'none') {
-        const margin = 8;
         const fx =
-          options.fallback === 'bottom-left' ? margin : width - qrSize - margin;
-        drawAt(fx, margin);
+          options.fallback === 'bottom-left'
+            ? fallbackMargin
+            : width - qrSize - fallbackMargin;
+        drawAt(fx, fallbackMargin);
+        if (options.fallback === 'bottom-right') {
+          reservedRight[i] = qrSize + fallbackMargin * 2;
+        } else if (options.fallback === 'bottom-left') {
+          reservedLeft[i] = qrSize + fallbackMargin * 2;
+        }
       }
     } else if (pageBoxes.length > 0) {
       for (const b of pageBoxes) {
@@ -137,18 +148,28 @@ export async function stampPdf(options: StampOptions): Promise<Uint8Array> {
         // Align the QR's left edge with the start (left) of the anchor text.
         drawAt(b.x, textTop + offsetAbove);
       }
-    } else if (options.fallbackUnmatchedPages && options.fallback && options.fallback !== 'none') {
-      const margin = 8;
+    } else if (
+      options.fallbackUnmatchedPages &&
+      options.fallback &&
+      options.fallback !== 'none'
+    ) {
       const fx =
-        options.fallback === 'bottom-left' ? margin : width - qrSize - margin;
-      drawAt(fx, margin);
+        options.fallback === 'bottom-left'
+          ? fallbackMargin
+          : width - qrSize - fallbackMargin;
+      drawAt(fx, fallbackMargin);
+      if (options.fallback === 'bottom-right') {
+        reservedRight[i] = qrSize + fallbackMargin * 2;
+      } else if (options.fallback === 'bottom-left') {
+        reservedLeft[i] = qrSize + fallbackMargin * 2;
+      }
     }
   }
 
   if (options.footerBuilder && options.footerBuilder instanceof FooterBuilder) {
-    await options.footerBuilder.render(pdfDoc);
+    await options.footerBuilder.render(pdfDoc, reservedLeft, reservedRight);
   } else if (options.footer) {
-    await drawFooter(pdfDoc, options.footer);
+    await drawFooter(pdfDoc, options.footer, reservedLeft, reservedRight);
   }
 
   const out = await pdfDoc.save();

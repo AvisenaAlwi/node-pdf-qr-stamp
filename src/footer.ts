@@ -1,5 +1,6 @@
 import { PDFDocument, PDFPage, StandardFonts, rgb } from 'pdf-lib';
 import { wrapText } from './text.js';
+import { drawTextWithLinks } from './links.js';
 import type { FooterOptions } from './types.js';
 
 function expandTokens(text: string, page: number, total: number): string {
@@ -18,6 +19,8 @@ function expandTokens(text: string, page: number, total: number): string {
 export async function drawFooter(
   pdfDoc: PDFDocument,
   footer: FooterOptions,
+  reservedLeft?: number[],
+  reservedRight?: number[],
 ): Promise<void> {
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontSize = footer.fontSize ?? 8;
@@ -42,15 +45,19 @@ export async function drawFooter(
   pages.forEach((page: PDFPage, i: number) => {
     const { width } = page.getSize();
     const pageNo = i + 1;
-    const available = width - 2 * margin;
+    // Leave the fallback QR area free on the side(s) it occupies.
+    const reservedL = reservedLeft?.[i] ?? 0;
+    const reservedR = reservedRight?.[i] ?? 0;
+    const effectiveWidth = Math.max(width - reservedL - reservedR, 2 * margin);
+    const available = effectiveWidth - 2 * margin;
     const colGap = 8;
     const colWidth = (available - 2 * colGap) / 3;
     const lineHeight = fontSize * 1.2;
 
     const colStarts = {
-      left: margin,
-      center: margin + colWidth + colGap,
-      right: margin + 2 * (colWidth + colGap),
+      left: margin + reservedL,
+      center: margin + reservedL + colWidth + colGap,
+      right: margin + reservedL + 2 * (colWidth + colGap),
     };
 
     const prepare = (text: string | undefined): string[] => {
@@ -77,7 +84,7 @@ export async function drawFooter(
         let x = colStarts[align];
         if (align === 'center') x += (colWidth - tw) / 2;
         if (align === 'right') x += colWidth - tw;
-        page.drawText(t, { x, y, size: fontSize, font, color });
+        drawTextWithLinks(page, t, x, y, { font, size: fontSize, color });
       };
 
       drawLine(leftLines, 'left');

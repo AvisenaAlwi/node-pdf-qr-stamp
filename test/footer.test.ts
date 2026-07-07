@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { stampPdf, FooterBuilder } from '../src/index.js';
-import { createPdf, assertValidPdf, extractTextContent, PNG_BYTES, UNKNOWN_IMAGE_BYTES } from './helpers.js';
+import { createPdf, assertValidPdf, extractTextContent, countLinkAnnotations, PNG_BYTES, UNKNOWN_IMAGE_BYTES } from './helpers.js';
 
 describe('simple footer', () => {
   it('draws left, center, and right text', async () => {
@@ -67,6 +67,22 @@ describe('simple footer', () => {
     await assertValidPdf(out);
     const pages = await extractTextContent(out);
     expect(pages[0].text).toContain('This is a very long footer text');
+  });
+
+  it('creates a clickable link annotation for URLs in footer text', async () => {
+    const pdf = await createPdf({
+      anchors: [{ text: 'anchor', x: 100, y: 700 }],
+    });
+    const out = await stampPdf({
+      pdf,
+      qr: { text: 'x' },
+      footer: {
+        center: 'Visit https://example.com/verify for details',
+      },
+    });
+    await assertValidPdf(out);
+    const linkCounts = await countLinkAnnotations(out);
+    expect(linkCounts[0]).toBe(1);
   });
 });
 
@@ -139,5 +155,19 @@ describe('FooterBuilder', () => {
     await expect(
       stampPdf({ pdf, qr: { text: 'x' }, footerBuilder: footer }),
     ).rejects.toThrow('Footer image must be a PNG or JPG');
+  });
+
+  it('creates a clickable link annotation for URLs in FooterBuilder text', async () => {
+    const pdf = await createPdf({
+      anchors: [{ text: 'anchor', x: 100, y: 700 }],
+    });
+    const footer = new FooterBuilder()
+      .fontSize(8)
+      .centerText('Verify at https://example.com/verify and https://example.com/docs');
+
+    const out = await stampPdf({ pdf, qr: { text: 'x' }, footerBuilder: footer });
+    await assertValidPdf(out);
+    const linkCounts = await countLinkAnnotations(out);
+    expect(linkCounts[0]).toBe(2);
   });
 });

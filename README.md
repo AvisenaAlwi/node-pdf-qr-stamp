@@ -247,6 +247,10 @@ Text options: `{ bold, color, fontSize, maxWidth }`.
   (bottom-left origin). Search is case-insensitive.
 - The footer uses the standard Helvetica font (ASCII). Non-ASCII characters may
   not render correctly.
+- When the QR code falls back to the bottom-right or bottom-left corner, the
+  footer automatically narrows on that side so the text does not cover the QR code.
+- URLs inside footer text are automatically converted into clickable links
+  (blue, underlined) with a link annotation.
 - 1 point ≈ 0.353 mm.
 
 ## Module support
