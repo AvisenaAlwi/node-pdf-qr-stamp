@@ -284,6 +284,20 @@ async function case10b(pdf: Uint8Array) {
   console.log('case10b: footer builder full-width -> examples/out/case10b-builder-fullwidth.pdf');
 }
 
+// ============================================================
+// CASE 11: Preview placeholder — black box instead of QR code
+// ============================================================
+async function case11(pdf: Uint8Array) {
+  const out = await stampPdf({
+    pdf,
+    qr: { size: 90, offsetAbove: 6 },
+    anchorText: 'ditandatangani secara elektronik',
+    preview: true,
+  });
+  writeFileSync('examples/out/case11-preview.pdf', out);
+  console.log('case11: preview placeholder -> examples/out/case11-preview.pdf');
+}
+
 async function main() {
   const pdf = await makePdf();
   await case1(pdf);
@@ -298,6 +312,7 @@ async function main() {
   await case9(pdf);
   await case10(pdf);
   await case10b(pdf);
+  await case11(pdf);
   console.log('\nALL CASES COMPLETE. See folder examples/out/');
 }
 

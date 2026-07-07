@@ -138,6 +138,21 @@ const result = await stampPdf({
 });
 ```
 
+### Preview placeholder — black box instead of QR code
+
+Use `preview: true` to draw a solid black box with the exact same size and
+position as the QR code. This is useful for previewing where the signature QR
+code will appear without having to generate a real QR code.
+
+```ts
+const result = await stampPdf({
+  pdf: pdfBytes,
+  qr: { size: 90 }, // qr.text is optional in preview mode
+  anchorText: 'ditandatangani secara elektronik',
+  preview: true,
+});
+```
+
 ### Inputs supported for `pdf`
 
 ```ts
@@ -190,6 +205,7 @@ await stampPdf({ pdf: ab, qr: { text: 'x' } });
 | `anchorText` | `string` | `'ditandatangani secara elektronik'` | Anchor text to search |
 | `fallback` | `'bottom-right' \| 'bottom-left' \| 'none'` | `'bottom-right'` | QR position when anchor not found |
 | `fallbackUnmatchedPages` | `boolean` | `false` | Also fallback on pages without anchor |
+| `preview` | `boolean` | `false` | Draw a black placeholder box instead of the QR code |
 | `footer` | `FooterOptions \| false` | `false` | Simple text footer |
 | `footerBuilder` | `FooterBuilder \| false` | `false` | Custom footer builder |
 | `output` | `string` | — | Write result to file path |

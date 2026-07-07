@@ -10,8 +10,8 @@ export type FallbackPosition = 'bottom-right' | 'bottom-left' | 'none';
 
 /** Options for the QR code that is stamped onto the PDF. */
 export interface QROptions {
-  /** The text/URL encoded by the QR code. */
-  text: string;
+  /** The text/URL encoded by the QR code. Required unless preview mode is enabled. */
+  text?: string;
   /** Optional logo drawn in the center of the QR code (PNG/JPG path or bytes). */
   image?: string | Uint8Array | Buffer | ArrayBuffer;
   /** Rendered size of the QR code in PDF points (1pt ≈ 0.353mm). Default 90. */
@@ -68,6 +68,12 @@ export interface StampOptions {
   footer?: FooterOptions | false;
   /** Custom footer builder (composition of text + images, left/center/right). */
   footerBuilder?: FooterBuilder | false;
+  /**
+   * When true, draw a solid black box with the same size as the QR code instead
+   * of rendering an actual QR code. Useful for previewing where the QR code
+   * signature will be placed later. Default false.
+   */
+  preview?: boolean;
   /** If set, the result is also written to this file path. */
   output?: string;
 }

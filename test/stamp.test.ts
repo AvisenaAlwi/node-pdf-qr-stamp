@@ -72,6 +72,38 @@ describe('stampPdf', () => {
     await assertValidPdf(out);
   });
 
+  it('draws a black placeholder box when preview is enabled', async () => {
+    const pdf = await createPdf({
+      anchors: [{ text: 'ditandatangani secara elektronik', x: 100, y: 700 }],
+    });
+    const out = await stampPdf({
+      pdf,
+      qr: { size: 80 },
+      preview: true,
+    });
+    await assertValidPdf(out);
+    // Preview output should be smaller because no QR image is embedded.
+    const normal = await stampPdf({
+      pdf,
+      qr: { text: 'https://verify.example.com/preview', size: 80 },
+    });
+    expect(out.length).toBeLessThan(normal.length);
+  });
+
+  it('draws a black placeholder box at fallback position in preview mode', async () => {
+    const pdf = await createPdf({
+      anchors: [{ text: 'no anchor here', x: 100, y: 700 }],
+    });
+    const out = await stampPdf({
+      pdf,
+      qr: { size: 80 },
+      anchorText: 'missing text',
+      fallback: 'bottom-right',
+      preview: true,
+    });
+    await assertValidPdf(out);
+  });
+
   it('handles multi-page PDFs', async () => {
     const pdf = await createPdf({
       pages: [

@@ -59,21 +59,26 @@ export async function stampPdf(options: StampOptions): Promise<Uint8Array> {
   const qrOpts: QROptions = options.qr;
   const qrSize = qrOpts.size ?? 90;
   const offsetAbove = qrOpts.offsetAbove ?? 0;
+  const preview = options.preview ?? false;
 
   const boxes = await findTextBoxes(bytes, anchor);
   const hasMatches = boxes.length > 0;
 
   const pdfDoc = await PDFDocument.load(bytes);
-  const qrImage: PDFImage = await pdfDoc.embedPng(
-    await generateQrPng(
-      qrOpts.text,
-      qrOpts.errorCorrectionLevel ?? 'H',
-      qrOpts.margin ?? 1,
-    ),
-  );
+
+  let qrImage: PDFImage | null = null;
+  if (!preview) {
+    qrImage = await pdfDoc.embedPng(
+      await generateQrPng(
+        qrOpts.text ?? '',
+        qrOpts.errorCorrectionLevel ?? 'H',
+        qrOpts.margin ?? 1,
+      ),
+    );
+  }
 
   let centerImage: PDFImage | null = null;
-  if (qrOpts.image) {
+  if (!preview && qrOpts.image) {
     const imgBytes = loadImageBytes(qrOpts.image);
     if (isPng(imgBytes)) centerImage = await pdfDoc.embedPng(imgBytes);
     else if (isJpg(imgBytes)) centerImage = await pdfDoc.embedJpg(imgBytes);
@@ -87,23 +92,33 @@ export async function stampPdf(options: StampOptions): Promise<Uint8Array> {
     const { width, height } = page.getSize();
 
     const drawAt = (x: number, y: number) => {
-      page.drawImage(qrImage, { x, y, width: qrSize, height: qrSize });
-      if (centerImage) {
-        const ratio = qrOpts.imageRatio ?? 0.22;
-        const cw = qrSize * ratio;
-        const ch = qrSize * ratio;
-        const cx = x + (qrSize - cw) / 2;
-        const cy = y + (qrSize - ch) / 2;
-        const pad = qrOpts.imagePadding ?? 3;
-        // White backing keeps the logo from destroying QR modules.
+      if (preview) {
         page.drawRectangle({
-          x: cx - pad,
-          y: cy - pad,
-          width: cw + pad * 2,
-          height: ch + pad * 2,
-          color: rgb(1, 1, 1),
+          x,
+          y,
+          width: qrSize,
+          height: qrSize,
+          color: rgb(0, 0, 0),
         });
-        page.drawImage(centerImage!, { x: cx, y: cy, width: cw, height: ch });
+      } else {
+        page.drawImage(qrImage!, { x, y, width: qrSize, height: qrSize });
+        if (centerImage) {
+          const ratio = qrOpts.imageRatio ?? 0.22;
+          const cw = qrSize * ratio;
+          const ch = qrSize * ratio;
+          const cx = x + (qrSize - cw) / 2;
+          const cy = y + (qrSize - ch) / 2;
+          const pad = qrOpts.imagePadding ?? 3;
+          // White backing keeps the logo from destroying QR modules.
+          page.drawRectangle({
+            x: cx - pad,
+            y: cy - pad,
+            width: cw + pad * 2,
+            height: ch + pad * 2,
+            color: rgb(1, 1, 1),
+          });
+          page.drawImage(centerImage!, { x: cx, y: cy, width: cw, height: ch });
+        }
       }
     };
 
