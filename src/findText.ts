@@ -2,10 +2,23 @@ import { createRequire } from 'module';
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { TextBox } from './types.js';
 
-const require = createRequire(import.meta.url);
+// In CJS builds `require` is available at runtime; in ESM builds we create a
+// require from the current module URL so we can resolve the worker file.
+declare const require: NodeRequire | undefined;
+
+function resolveWorkerPath(): string {
+  if (typeof require !== 'undefined' && typeof require.resolve === 'function') {
+    return require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
+  }
+  // In ESM builds tsup's --shims injects __filename from import.meta.url.
+  // @ts-ignore __filename is provided by the bundler shim
+  return createRequire(__filename).resolve(
+    'pdfjs-dist/legacy/build/pdf.worker.mjs',
+  );
+}
+
 // pdf.js needs a worker; resolve it from the installed package.
-pdfjs.GlobalWorkerOptions.workerSrc =
-  'file://' + require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs');
+pdfjs.GlobalWorkerOptions.workerSrc = 'file://' + resolveWorkerPath();
 
 interface RawTextItem {
   str: string;

@@ -233,10 +233,17 @@ Text options: `{ bold, color, fontSize, maxWidth }`.
   not render correctly.
 - 1 point ≈ 0.353 mm.
 
+## Module support
+
+This library is published as both **CommonJS** (`require(...)`) and **ESM**
+(`import ...`). Node.js will pick the right format automatically based on the
+consumer's module system.
+
 ## Development
 
 ```bash
-npm run build   # compile TypeScript -> dist/
+npm install
+npm run build   # bundle TypeScript -> dist/ (CJS + ESM + types)
 npm test        # unit tests (Vitest)
 ```
 
